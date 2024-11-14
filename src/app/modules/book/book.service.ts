@@ -1,6 +1,6 @@
-
 import { PrismaClient } from "@prisma/client";
 import { IBook } from "./book.interface";
+import ApiError from "../../errors/ApiError";
 
 const prisma = new PrismaClient
 
@@ -15,16 +15,25 @@ const insertIntoDB = async (payload: IBook) => {
 };
 
 const getAllBookFromDB = async () => {
-    const getBook = await prisma.book.findMany()
+    const getBook = await prisma.book.findMany();
+
+    if(!getBook) {
+        throw new ApiError(500, "No available copies");
+    }
+
     return getBook;
 };
 
 const getBookFromDB = async (bookId: string) => {
-    const getABook = await prisma.book.findUnique({
+    const getABook: any = await prisma.book.findUnique({
         where: {
             bookId
         } 
-    })
+    });
+
+    if(!getABook) {
+        throw new ApiError(400, "Invalid book ID");
+    }
     return getABook;
 };
 
@@ -34,7 +43,10 @@ const updateBookDB = async (bookId: string, payload: IBook) => {
             bookId
         },
         data: payload 
-    })
+    });
+    if(!updateABook) {
+        throw new ApiError(400, "Invalid book ID");
+    }
     return updateABook;
 };
 
@@ -44,6 +56,9 @@ const deleteBookDB = async (bookId: string) => {
             bookId
         }
     })
+    if(!deleteABook) {
+        throw new ApiError(400, "Invalid book ID");
+    }
     return deleteABook;
 };
 
